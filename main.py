@@ -5,11 +5,6 @@ def load_data(f_path, index = None, column = None):
 	if index:
 		df = df.set_index(index, drop = False)
 	return df
-def select_columns(df, columns_str, index=None):
-    selected_columns = columns_str.split(",") if columns_str else df.columns.tolist()
-    if index and index not in selected_columns:
-        selected_columns.insert(0, index)  # Ensure index is always in the selected columns
-    return df[selected_columns]
 def select_columns(df, column, index = None):
 	kept_columns = column.split(",")
 	if index and index not in kept_columns:
