@@ -1,19 +1,25 @@
 import argparse
 import pandas as pd
-def load_data(f_path, index = None):
-    df = read_table_as_str(f_path)
-    if index:
-        df = row_to_header(df).set_index(index, drop = False)
-    return df
-def read_table_as_str(f_path):
-	return pd.read_csv(f_path, sep = "\t", keep_default_na = False, dtype = str, header = None)
+def load_data(f_path, index = None, column = None):
+	df = pd.read_csv(f_path, sep = "\t", keep_default_na = False, dtype = str)
+	if index:
+		df = df.set_index(index, drop = False)
+		if column:
+			kept_columns = [index]
+			kept_columns.extend(column.split(","))
+			df = df[kept_columns]
+	else:
+		if column:
+			df = df[column.split(",")]
+		df = header_to_row(df)
+	return df
 def row_to_header(df, row_index: int = 0):
 	new_header = df.iloc[row_index]
 	df = df.drop(df.index[row_index])
 	df.columns = new_header
 	return df
 def header_to_row(df):
-	return df.T.reset_index(drop = False).T
+	return pd.concat([df.columns.to_frame().T, df]).reset_index(drop = True)
 def compare_df(df1, df2):
 	return df1.combine(df2, compare_series)
 def compare_series(s1, s2):
@@ -42,11 +48,12 @@ def parse_arguments():
 	parser.add_argument("file1", type = str, help = "Path to the first file to compare.")
 	parser.add_argument("file2", type = str, help = "Path to the second file to compare.")
 	parser.add_argument("-i", "--index", type = str, help = "Name of index column, focusing comparison based on shared indices")
+	parser.add_argument("-c", "--column", type = str, help = "Only compare the specified columns across the two tables. If not provided, all columns will be compared.")
 	return parser.parse_args()
 def main():
 	args = parse_arguments()
-	df1 = load_data(args.file1, args.index)
-	df2 = load_data(args.file2, args.index)
+	df1 = load_data(args.file1, args.index, args.column)
+	df2 = load_data(args.file2, args.index, args.column)
 	if args.index:
 		mode = IndexMode()
 	else:
