@@ -4,15 +4,17 @@ def load_data(f_path, index = None, column = None):
 	df = pd.read_csv(f_path, sep = "\t", keep_default_na = False, dtype = str)
 	if index:
 		df = df.set_index(index, drop = False)
-		if column:
-			kept_columns = [index]
-			kept_columns.extend(column.split(","))
-			df = df[kept_columns]
-	else:
-		if column:
-			df = df[column.split(",")]
-		df = header_to_row(df)
 	return df
+def select_columns(df, columns_str, index=None):
+    selected_columns = columns_str.split(",") if columns_str else df.columns.tolist()
+    if index and index not in selected_columns:
+        selected_columns.insert(0, index)  # Ensure index is always in the selected columns
+    return df[selected_columns]
+def select_columns(df, column, index = None):
+	kept_columns = column.split(",")
+	if index and index not in kept_columns:
+		kept_columns.insert(0, index)
+	return df[kept_columns]
 def row_to_header(df, row_index: int = 0):
 	new_header = df.iloc[row_index]
 	df = df.drop(df.index[row_index])
@@ -36,6 +38,8 @@ class DiffMode():
 		pass
 class DefaultMode(DiffMode):
 	def compare(self, df1, df2):
+		df1 = header_to_row(df1)
+		df2 = header_to_row(df2)
 		return compare_df(df1, df2)
 class IndexMode(DiffMode):
 	def compare(self, df1, df2):
@@ -54,6 +58,9 @@ def main():
 	args = parse_arguments()
 	df1 = load_data(args.file1, args.index, args.column)
 	df2 = load_data(args.file2, args.index, args.column)
+	if args.column:
+		df1 = select_columns(df1, args.column, args.index)
+		df2 = select_columns(df2, args.column, args.index)
 	if args.index:
 		mode = IndexMode()
 	else:
