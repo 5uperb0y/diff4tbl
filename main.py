@@ -4,8 +4,10 @@ def load_data(f_path, index = None, column = None):
 	df = pd.read_csv(f_path, sep = "\t", keep_default_na = False, dtype = str)
 	if index:
 		df = df.set_index(index, drop = False)
+	if column:
+		df = select_columns(df, index, column)
 	return df
-def select_columns(df, column, index = None):
+def select_columns(df, index = None, column = None):
 	kept_columns = column.split(",")
 	if index and index not in kept_columns:
 		kept_columns.insert(0, index)
@@ -53,9 +55,6 @@ def main():
 	args = parse_arguments()
 	df1 = load_data(args.file1, args.index, args.column)
 	df2 = load_data(args.file2, args.index, args.column)
-	if args.column:
-		df1 = select_columns(df1, args.column, args.index)
-		df2 = select_columns(df2, args.column, args.index)
 	if args.index:
 		mode = IndexMode()
 	else:
