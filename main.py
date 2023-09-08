@@ -8,6 +8,7 @@ def parse_arguments():
 	parser.add_argument("-i", "--index", type = str, help = "Name of index column, focusing comparison based on shared indices")
 	parser.add_argument("-c", "--column", type = str, help = "Only compare the specified columns across the two tables. If not provided, all columns will be compared.")
 	parser.add_argument("-C", "--common-columns", action = "store_true", help = "Only compare columns that exist in both tables.")
+	parser.add_argument("-U", "--show-unique", action = "store_true", help = "Show unique rows or columns between two tables.")
 	return parser.parse_args()
 # DATA LOADING
 def load_data(f_path, index = None, column = None):
@@ -46,6 +47,22 @@ def intersect_by_columns(df1, df2):
 	df1 = df1[common_columns]
 	df2 = df2[common_columns]
 	return df1, df2
+def show_unique_rows(df1, df2):
+	df1_only = df1.index.difference(df2.index)
+	df2_only = df2.index.difference(df1.index)
+	print("Row comparison:")
+	for id in df1_only:
+		print("- " + str(id))
+	for id in df2_only:
+		print("+ " + str(id))
+def show_unique_columns(df1, df2):
+	df1_only = df1.columns.difference(df2.columns)
+	df2_only = df2.columns.difference(df1.columns)
+	print("Column comparison:")
+	for name in df1_only:
+		print("- " + name)
+	for name in df2_only:
+		print("+ " + name)
 # COMPARING
 def compare_df(df1, df2):
 	return df1.combine(df2, compare_series)
@@ -62,6 +79,10 @@ def main():
 	args = parse_arguments()
 	df1 = load_data(args.file1, args.index, args.column)
 	df2 = load_data(args.file2, args.index, args.column)
+	if args.show_unique:
+		show_unique_columns(df1, df2)
+		show_unique_rows(df1, df2)
+		return
 	if args.common_columns:
 		df1, df2 = intersect_by_columns(df1, df2)
 	if args.index:
