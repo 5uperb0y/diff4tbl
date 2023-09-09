@@ -13,8 +13,19 @@ def parse_arguments():
 	parser.add_argument("-S", "--suppress-common", action = "store_true", help = "Only show differences, suppress common lines.")
 	return parser.parse_args()
 # DATA LOADING
+def detect_separator(f_path):
+	with open(f_path, "r") as file:
+		content = file.read(1024)
+	if "\t" in content:
+		return "\t"
+	elif "," in content:
+		return ","
+	elif "\s" in content:
+		return "\s"
+	else:
+		raise ValueError("Could not determine the separator!")
 def load_data(f_path, index = None, column = None):
-	df = pd.read_csv(f_path, sep = "\t", keep_default_na = False, dtype = str)
+	df = pd.read_csv(f_path, sep = detect_separator(f_path), keep_default_na = False, dtype = str)
 	if index:
 		df = df.set_index(index, drop = False)
 	if column:
@@ -71,9 +82,9 @@ def show_unique_columns(df1, df2):
 def diff_type(str1, str2):
 	if str1 == str2:
 		return ""
-	elif pd.isna(str1):
+	elif pd.isna(str1) or str1 == "":
 		return "<"
-	elif pd.isna(str2):
+	elif pd.isna(str2) or str2 == "":
 		return ">"
 	else:
 		return "|"
