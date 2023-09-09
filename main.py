@@ -11,7 +11,42 @@ def parse_arguments():
 	parser.add_argument("-U", "--show-unique", action = "store_true", help = "Show unique rows or columns between two tables.")
 	parser.add_argument("-y", "--side-by-side", action = "store_true", help = "Display cell differences in a side-by-side tabular format.")
 	parser.add_argument("-S", "--suppress-common", action = "store_true", help = "Only show differences, suppress common lines.")
+	parser.add_argument("-s", "--stats", action = "store_true", help = "Specify the stats method for columns. Format: --stats --column column1:method1,column2:method2,...")
 	return parser.parse_args()
+def get_default_method(df, column):
+	try:
+		pd.to_numeric(df[column])
+		return "mean"
+	except ValueError:
+		return "identity"
+def map_column_and_method(df, args_column = None):
+	methods = {}
+	default = True
+	if not args_column:
+		for column in df.columns:
+			methods[column] = get_default_method(df, column)
+		return methods
+	elif ":" in args_column:
+		default = False
+	for segment in args_column.split(","):
+		if ":" in segment:
+			col, method = segment.split(":")
+			methods[col] = method
+		else:
+			if default:
+				methods[segment] = get_default_method(df, segment)
+			else:
+				methods[segment] = "skip"
+	return methods
+def args_column_parser(args_column):
+	column = []
+	for segment in args_column.split(","):
+		if ":" in segment:
+			col, _ = segment.split(":")
+			column.append(col)
+		else:
+			column.append(segment)
+	return ",".join(column)
 # DATA LOADING
 def detect_separator(f_path):
 	with open(f_path, "r") as file:
@@ -20,16 +55,17 @@ def detect_separator(f_path):
 		return "\t"
 	elif "," in content:
 		return ","
-	elif "\s" in content:
-		return "\s"
+	elif " " in content:
+		return " "
 	else:
 		raise ValueError("Could not determine the separator!")
-def load_data(f_path, index = None, column = None):
+def load_data(f_path, index = None, column = None, stats = None):
 	df = pd.read_csv(f_path, sep = detect_separator(f_path), keep_default_na = False, dtype = str)
 	if index:
 		df = df.set_index(index, drop = False)
 	if column:
-		df = select_columns(df, index, column)
+		parsed_column = args_column_parser(column)
+		df = select_columns(df, index, parsed_column)
 	return df
 def select_columns(df, index = None, column = None):
 	kept_columns = column.split(",")
@@ -112,6 +148,50 @@ def combine_cells(c1, c2):
 		return c1
 	else:
 		return c1 + "{" + c2 + "}"
+# SUMMARY
+def diff_summary(df1, df2, column, method):
+	df1 = df1.sort_index()
+	df2 = df2.sort_index()
+	if method == "max":
+		return diff_max(df1[column].astype(float), df2[column].astype(float))
+	elif method == "min":
+		return diff_min(df1[column].astype(float), df2[column].astype(float))
+	elif method == "mean":
+		return diff_mean(df1[column].astype(float), df2[column].astype(float))
+	elif method == "median":
+		return diff_median(df1[column].astype(float), df2[column].astype(float))
+	elif method == "identity":
+		return diff_identity(df1[column], df2[column])
+	elif method == "corr":
+		return diff_corr(df1[column].astype(float), df2[column].astype(float))
+	elif method == "loa":
+		return diff_loa(df1[column].astype(float), df2[column].astype(float))
+	elif method == "skip":
+		return
+def diff_min(s1, s2):
+	diff = s2 - s1
+	return diff.min()
+def diff_median(s1, s2):
+	diff = s2 - s1
+	return diff.median()
+def diff_mean(s1, s2):
+	diff = s2 - s1
+	return diff.mean()
+def diff_max(s1, s2):
+	diff = s2 - s1
+	return diff.max()
+def diff_identity(s1, s2):
+	matches = (s1 == s2).sum()
+	total = len(s1)
+	return matches / total
+def diff_corr(s1, s2):
+    return s1.corr(s2)
+def diff_loa(s1, s2):
+	diff = s2 - s1
+	upper_loa = diff.mean() + 1.96 * diff.std(ddof = 1)
+	lower_loa = diff.mean() - 1.96 * diff.std(ddof = 1)
+	return str(diff.mean()) + "[" + str(lower_loa) + ", " + str(upper_loa) + "]"
+# MAIN
 def main():
 	args = parse_arguments()
 	df1 = load_data(args.file1, args.index, args.column)
@@ -120,7 +200,7 @@ def main():
 		show_unique_columns(df1, df2)
 		show_unique_rows(df1, df2)
 		return
-	if args.common_columns:
+	if args.common_columns or args.stats:
 		df1, df2 = intersect_by_columns(df1, df2)
 	if args.index:
 		df1, df2 = intersect_by_ids(df1, df2)
@@ -129,6 +209,14 @@ def main():
 		if args.suppress_common:
 			diff_df = diff_df[diff_df["Comparison"] != ""]
 		print(diff_df.to_csv(sep = "\t", index = None, header = None))
+		return
+	if args.stats:
+		if len(df1.index) != len(df2.index):
+			print("Only supports comparison between tables with equal row numbers.")
+			return
+		methods = map_column_and_method(df1, args.column)
+		for col, method in methods.items():
+			print(col + "\t" + method + "\t" + str(diff_summary(df1, df2, col, method)))
 		return
 	df1, df2 = dehead(df1, df2)
 	diff_df = compare_df(df1, df2)
