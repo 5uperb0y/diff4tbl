@@ -10,6 +10,7 @@ def parse_arguments():
 	parser.add_argument("-C", "--common-columns", action = "store_true", help = "Only compare columns that exist in both tables.")
 	parser.add_argument("-U", "--show-unique", action = "store_true", help = "Show unique rows or columns between two tables.")
 	parser.add_argument("-y", "--side-by-side", action = "store_true", help = "Display cell differences in a side-by-side tabular format.")
+	parser.add_argument("-S", "--suppress-common", action = "store_true", help = "Only show differences, suppress common lines.")
 	return parser.parse_args()
 # DATA LOADING
 def load_data(f_path, index = None, column = None):
@@ -33,6 +34,9 @@ def header_to_row(df):
 	df = pd.concat([df.columns.to_frame().T, df]).reset_index(drop = True)
 	df.columns = range(df.shape[1])
 	return df
+def grep_df(df, pattern, skip = None):
+	skip = skip or []
+	return df[df.index.isin(skip) | df.apply(lambda x: x.astype(str).str.contains(pattern)).any(axis = 1)]
 # PREPROCESSING
 def dehead(df1, df2):
 	df1 = header_to_row(df1)
@@ -74,7 +78,7 @@ def diff_type(str1, str2):
 	else:
 		return "|"
 # COMPARING
-def compare_sbs(df1, df2):
+def compare_side_by_side(df1, df2):
 	if not df1.index.name:
 		df1["index"] = df1.index
 		df2["index"] = df2.index
@@ -85,7 +89,7 @@ def compare_sbs(df1, df2):
 	def diff_type_for_row(row):
 		return diff_type(row["value_x"], row["value_y"])
 	merged["Comparison"] = merged.apply(diff_type_for_row, axis = 1)
-	print(merged[[index, "variable", "value_x", "Comparison", "value_y"]].to_csv(sep = "\t", index = None, header = None))
+	return merged[[index, "variable", "value_x", "Comparison", "value_y"]]
 def compare_df(df1, df2):
 	return df1.combine(df2, compare_series)
 def compare_series(s1, s2):
@@ -110,9 +114,14 @@ def main():
 	if args.index:
 		df1, df2 = intersect_by_ids(df1, df2)
 	if args.side_by_side:
-		compare_sbs(df1, df2)
+		diff_df = compare_side_by_side(df1, df2)
+		if args.suppress_common:
+			diff_df = diff_df[diff_df["Comparison"] != ""]
+		print(diff_df.to_csv(sep = "\t", index = None, header = None))
 		return
 	df1, df2 = dehead(df1, df2)
 	diff_df = compare_df(df1, df2)
+	if args.suppress_common:
+		diff_df = grep_df(diff_df, "{", skip = [0])
 	print(diff_df.to_csv(sep = "\t", index = None, header = False))
 main()
