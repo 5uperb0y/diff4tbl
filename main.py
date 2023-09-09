@@ -9,6 +9,7 @@ def parse_arguments():
 	parser.add_argument("-c", "--column", type = str, help = "Only compare the specified columns across the two tables. If not provided, all columns will be compared.")
 	parser.add_argument("-C", "--common-columns", action = "store_true", help = "Only compare columns that exist in both tables.")
 	parser.add_argument("-U", "--show-unique", action = "store_true", help = "Show unique rows or columns between two tables.")
+	parser.add_argument("-y", "--side-by-side", action = "store_true", help = "Display cell differences in a side-by-side tabular format.")
 	return parser.parse_args()
 # DATA LOADING
 def load_data(f_path, index = None, column = None):
@@ -63,7 +64,28 @@ def show_unique_columns(df1, df2):
 		print("- " + name)
 	for name in df2_only:
 		print("+ " + name)
+def diff_type(str1, str2):
+	if str1 == str2:
+		return ""
+	elif pd.isna(str1):
+		return "<"
+	elif pd.isna(str2):
+		return ">"
+	else:
+		return "|"
 # COMPARING
+def compare_sbs(df1, df2):
+	if not df1.index.name:
+		df1["index"] = df1.index
+		df2["index"] = df2.index
+	index = df1.index.name or "index"
+	df1 = pd.melt(df1, id_vars = [index])
+	df2 = pd.melt(df2, id_vars = [index])
+	merged = df1.merge(df2, on = [index, "variable"], how = "outer")
+	def diff_type_for_row(row):
+		return diff_type(row["value_x"], row["value_y"])
+	merged["Comparison"] = merged.apply(diff_type_for_row, axis = 1)
+	print(merged[[index, "variable", "value_x", "Comparison", "value_y"]].to_csv(sep = "\t", index = None, header = None))
 def compare_df(df1, df2):
 	return df1.combine(df2, compare_series)
 def compare_series(s1, s2):
@@ -87,6 +109,9 @@ def main():
 		df1, df2 = intersect_by_columns(df1, df2)
 	if args.index:
 		df1, df2 = intersect_by_ids(df1, df2)
+	if args.side_by_side:
+		compare_sbs(df1, df2)
+		return
 	df1, df2 = dehead(df1, df2)
 	diff_df = compare_df(df1, df2)
 	print(diff_df.to_csv(sep = "\t", index = None, header = False))
