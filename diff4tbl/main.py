@@ -1,6 +1,7 @@
 import argparse
 import pandas as pd
 import sys
+from stats import Stats
 # ARGUMENT PARSING
 def parse_arguments():
 	parser = argparse.ArgumentParser(description = "A table comparison tool, inspired by GNU diff.")
@@ -152,67 +153,11 @@ def combine_cells(c1, c2):
 		return c1
 	else:
 		return c1 + "{" + c2 + "}"
-# SUMMARY
-def diff_summary(df1, df2, column, method):
-	df1 = df1.sort_index()
-	df2 = df2.sort_index()
-	if method == "max":
-		return diff_max(df1[column].astype(float), df2[column].astype(float))
-	elif method == "min":
-		return diff_min(df1[column].astype(float), df2[column].astype(float))
-	elif method == "mean":
-		return diff_mean(df1[column].astype(float), df2[column].astype(float))
-	elif method == "median":
-		return diff_median(df1[column].astype(float), df2[column].astype(float))
-	elif method == "identity":
-		return diff_identity(df1[column], df2[column])
-	elif method == "corr":
-		return diff_corr(df1[column].astype(float), df2[column].astype(float))
-	elif method == "loa":
-		return diff_loa(df1[column].astype(float), df2[column].astype(float))
-	elif method == "skip":
-		return
-def diff_min(s1, s2):
-	diff = s2 - s1
-	return diff.min()
-def diff_median(s1, s2):
-	diff = s2 - s1
-	return diff.median()
-def diff_mean(s1, s2):
-	diff = s2 - s1
-	return diff.mean()
-def diff_max(s1, s2):
-	diff = s2 - s1
-	return diff.max()
-def diff_identity(s1, s2):
-	matches = (s1 == s2).sum()
-	total = len(s1)
-	return matches / total
-def diff_corr(s1, s2):
-    return s1.corr(s2)
-def diff_loa(s1, s2):
-	diff = s2 - s1
-	upper_loa = diff.mean() + 1.96 * diff.std(ddof = 1)
-	lower_loa = diff.mean() - 1.96 * diff.std(ddof = 1)
-	return str(diff.mean()) + "[" + str(lower_loa) + ", " + str(upper_loa) + "]"
-def list_stats_methods():
-	methods = {
-		"default": "mean for numeric columns, identity for string columns.",
-		"min": "Min difference between columns.",
-		"max": "Max difference between columns.",
-		"mean": "Mean difference between columns.",
-		"median": "Median difference between columns.",
-		"identity": "Ratio of identcial values between columns.",
-		"corr": "Correlation between columns.",
-		"loa": "Limits of Agreement for column differences.",
-	}
-	for method, description in methods.items():
-		sys.stdout.write(method + ": " + description)
 # MAIN
 def main():
 	args = parse_arguments()
 	if args.list_stats_methods:
-		list_stats_methods()
+		Stats.list_methods()
 		return
 	if not args.file1 or not args.file2:
 		sys.stdout.write("error: the following arguments are required: file1, file2")
@@ -234,12 +179,10 @@ def main():
 		sys.stdout.write(diff_df.to_csv(sep = "\t", index = False, header = None))
 		return
 	if args.stats:
-		if len(df1.index) != len(df2.index):
-			sys.stdout.write("Only supports comparison between tables with equal row numbers.")
-			return
 		methods = map_column_and_method(df1, args.column)
 		for col, method in methods.items():
-			sys.stdout.write(col + "\t" + method + "\t" + str(diff_summary(df1, df2, col, method)) + "\n")
+			result = Stats.calculate(method, df1.sort_index()[col], df2.sort_index()[col])
+			Stats.show(col, method, result)
 		return
 	df1, df2 = dehead(df1, df2)
 	diff_df = compare_df(df1, df2)
