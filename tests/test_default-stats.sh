@@ -18,5 +18,5 @@ REF	identity	0.5
 ALT	identity	1.0
 QUAL	mean	20.0
 EOF
-python main.py --stats "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
+python ./diff4tbl/main.py --stats "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
 assert "${TMP_EXPECT}" "${TMP_ACTUAL}"

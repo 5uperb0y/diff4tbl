@@ -16,5 +16,5 @@ id	REF
 a1	A{T}
 a2	C
 EOF
-python main.py -c id,REF "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
+python ./diff4tbl/main.py -c id,REF "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
 assert "${TMP_EXPECT}" "${TMP_ACTUAL}"

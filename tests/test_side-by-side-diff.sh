@@ -22,5 +22,5 @@ cat << EOF > "${TMP_EXPECT}"
 0	ALT		<	G
 1	ALT		<	G
 EOF
-python main.py -y "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
+python ./diff4tbl/main.py -y "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
 assert "${TMP_EXPECT}" "${TMP_ACTUAL}"
