@@ -90,6 +90,8 @@ def grep_df(df, pattern, skip = None):
 def dehead(df1, df2):
 	df1 = header_to_row(df1)
 	df2 = header_to_row(df2)
+	df1.iloc[0] = df1.iloc[0].apply(lambda x: "" if "Unnamed" in str(x) else x)
+	df2.iloc[0] = df2.iloc[0].apply(lambda x: "" if 'Unnamed' in str(x) else x)
 	return df1, df2
 def intersect_by_ids(df1, df2):
 	shared_ids = df1.index.intersection(df2.index)
