@@ -1,5 +1,6 @@
 import argparse
 import pandas as pd
+import sys
 # ARGUMENT PARSING
 def parse_arguments():
 	parser = argparse.ArgumentParser(description = "A table comparison tool, inspired by GNU diff.")
@@ -204,7 +205,7 @@ def list_stats_methods():
 		"loa": "Limits of Agreement for column differences.",
 	}
 	for method, description in methods.items():
-		print(method + ": " + description)
+		sys.stdout.write(method + ": " + description)
 # MAIN
 def main():
 	args = parse_arguments()
@@ -212,7 +213,7 @@ def main():
 		list_stats_methods()
 		return
 	if not args.file1 or not args.file2:
-		print("error: the following arguments are required: file1, file2")
+		sys.stdout.write("error: the following arguments are required: file1, file2")
 		exit()
 	df1 = load_data(args.file1, args.index, args.column)
 	df2 = load_data(args.file2, args.index, args.column)
@@ -228,19 +229,19 @@ def main():
 		diff_df = compare_side_by_side(df1, df2)
 		if args.suppress_common:
 			diff_df = diff_df[diff_df["Comparison"] != ""]
-		print(diff_df.to_csv(sep = "\t", index = None, header = None))
+		sys.stdout.write(diff_df.to_csv(sep = "\t", index = False, header = None))
 		return
 	if args.stats:
 		if len(df1.index) != len(df2.index):
-			print("Only supports comparison between tables with equal row numbers.")
+			sys.stdout.write("Only supports comparison between tables with equal row numbers.")
 			return
 		methods = map_column_and_method(df1, args.column)
 		for col, method in methods.items():
-			print(col + "\t" + method + "\t" + str(diff_summary(df1, df2, col, method)))
+			sys.stdout.write(col + "\t" + method + "\t" + str(diff_summary(df1, df2, col, method)))
 		return
 	df1, df2 = dehead(df1, df2)
 	diff_df = compare_df(df1, df2)
 	if args.suppress_common:
 		diff_df = grep_df(diff_df, "{", skip = [0])
-	print(diff_df.to_csv(sep = "\t", index = None, header = False))
+	sys.stdout.write(diff_df.to_csv(sep = "\t", index = False, header = False))
 main()
