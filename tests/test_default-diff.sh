@@ -22,5 +22,5 @@ a1	C	G{A}	20	FAILED	0.4{}
 b1	A	CC	80	PASSED	0.03{}
 {b2}	{G}	{A}	{10}	{FAILED}	
 EOF
-python ./diff4tbl/main.py "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
+python -m diff4tbl "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
 assert "${TMP_EXPECT}" "${TMP_ACTUAL}"

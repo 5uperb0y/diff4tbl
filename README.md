@@ -13,7 +13,7 @@
 ## Usage
 
 ```bash
-usage: main.py [OPTION]... FILE1 FILE2
+usage: python -m diff4tbl [OPTION]... FILE1 FILE2
 
 positional arguments:
 	file1                 		Path to the first file to compare.

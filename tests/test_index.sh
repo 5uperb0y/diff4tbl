@@ -16,5 +16,5 @@ cat << EOF > "${TMP_EXPECT}"
 id	REF	ALT
 a1	C{A}	G
 EOF
-python ./diff4tbl/main.py -i "id" "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
+python -m diff4tbl -i "id" "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
 assert "${TMP_EXPECT}" "${TMP_ACTUAL}"
