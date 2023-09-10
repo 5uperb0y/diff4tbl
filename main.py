@@ -3,15 +3,16 @@ import pandas as pd
 # ARGUMENT PARSING
 def parse_arguments():
 	parser = argparse.ArgumentParser(description = "A table comparison tool, inspired by GNU diff.")
-	parser.add_argument("file1", type = str, help = "Path to the first file to compare.")
-	parser.add_argument("file2", type = str, help = "Path to the second file to compare.")
+	parser.add_argument("file1", type = str, nargs = '?', default = None, help = "Path to the first file to compare.")
+	parser.add_argument("file2", type = str, nargs = '?', default = None, help = "Path to the second file to compare.")
 	parser.add_argument("-i", "--index", type = str, help = "Name of index column, focusing comparison based on shared indices")
 	parser.add_argument("-c", "--column", type = str, help = "Only compare the specified columns across the two tables. If not provided, all columns will be compared.")
 	parser.add_argument("-C", "--common-columns", action = "store_true", help = "Only compare columns that exist in both tables.")
 	parser.add_argument("-U", "--show-unique", action = "store_true", help = "Show unique rows or columns between two tables.")
 	parser.add_argument("-y", "--side-by-side", action = "store_true", help = "Display cell differences in a side-by-side tabular format.")
 	parser.add_argument("-S", "--suppress-common", action = "store_true", help = "Only show differences, suppress common lines.")
-	parser.add_argument("-s", "--stats", action = "store_true", help = "Specify the stats method for columns. Format: --stats --column column1:method1,column2:method2,...")
+	parser.add_argument("-s", "--stats", action = "store_true", help = "Specify the stats method for columns. Format: --stats --column column1:method1,column2:method2,... Use `--list-stats-methods` to view available methods.")
+	parser.add_argument("--list-stats-methods", action = "store_true", help = "View available stats methods.")
 	return parser.parse_args()
 def get_default_method(df, column):
 	try:
@@ -191,9 +192,28 @@ def diff_loa(s1, s2):
 	upper_loa = diff.mean() + 1.96 * diff.std(ddof = 1)
 	lower_loa = diff.mean() - 1.96 * diff.std(ddof = 1)
 	return str(diff.mean()) + "[" + str(lower_loa) + ", " + str(upper_loa) + "]"
+def list_stats_methods():
+	methods = {
+		"default": "mean for numeric columns, identity for string columns.",
+		"min": "Min difference between columns.",
+		"max": "Max difference between columns.",
+		"mean": "Mean difference between columns.",
+		"median": "Median difference between columns.",
+		"identity": "Ratio of identcial values between columns.",
+		"corr": "Correlation between columns.",
+		"loa": "Limits of Agreement for column differences.",
+	}
+	for method, description in methods.items():
+		print(method + ": " + description)
 # MAIN
 def main():
 	args = parse_arguments()
+	if args.list_stats_methods:
+		list_stats_methods()
+		return
+	if not args.file1 or not args.file2:
+		print("error: the following arguments are required: file1, file2")
+		exit()
 	df1 = load_data(args.file1, args.index, args.column)
 	df2 = load_data(args.file2, args.index, args.column)
 	if args.show_unique:

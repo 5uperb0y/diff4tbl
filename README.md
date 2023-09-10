@@ -7,7 +7,8 @@
 - Automatically detects CSV, TSV, and space-separated table formats.
 - Displays unique rows or columns between two tables.
 - Supports comparison of only the common columns between two tables.
-- Offers a side-by-side comparison mode for intuitive difference visualization.
+- Offers a side-by-side comparison mode for intuitive difference visualizationi.
+- Summarize differences with various indices for identity evaluation
 
 ## Usage
 
@@ -26,6 +27,8 @@ optional arguments:
 	-U, --show-unique          	display unique rows or columns between two tables
 	-y, --side-by-side         	display cell differences in a side-by-side tabular format
 	-S, --suppress-common      	only show differences, suppress common lines
+	-s, --stats					Specify the stats method for columns. Format: --stats --column column1:method1,column2:method2,... Use `--list-stats-methods` to view available methods.
+	--list-stats-methods		View available stats methods.
 ```
 
 ## Installation
