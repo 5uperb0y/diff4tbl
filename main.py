@@ -239,7 +239,7 @@ def main():
 			return
 		methods = map_column_and_method(df1, args.column)
 		for col, method in methods.items():
-			sys.stdout.write(col + "\t" + method + "\t" + str(diff_summary(df1, df2, col, method)))
+			sys.stdout.write(col + "\t" + method + "\t" + str(diff_summary(df1, df2, col, method)) + "\n")
 		return
 	df1, df2 = dehead(df1, df2)
 	diff_df = compare_df(df1, df2)
