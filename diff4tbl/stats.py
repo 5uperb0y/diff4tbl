@@ -1,5 +1,5 @@
 class Stats():
-	@staticmethod
+	# -------------- Complex Statistics --------------
 	def kappa(s1, s2):
 		N = len(s1)
 		p_o = (s1 == s2).sum() / N
@@ -8,6 +8,40 @@ class Stats():
 		p_e = (s1_freq * s2_freq).fillna(0).sum()
 		coef = (p_o - p_e) / (1 - p_e)
 		return coef
+	# -------------- Sanity Check Methods --------------
+	@classmethod
+	def _method_exist(cls, method):
+		if method not in cls.methods:
+			raise ValueError("Unknown method: " + method)
+	@staticmethod
+	def _to_type(s, type):
+		try:
+			return s.astype(type)
+		except:
+			raise ValueError("Error converting series. Numeric method on a string, a blank, or a missing value?")
+	@staticmethod
+	def _equal_length(s1, s2):
+		if len(s1) != len(s2):
+			raise ValueError("Both series must have the same length.")
+	@classmethod
+	def _ensure_type(cls, method, s):
+		cls._method_exist(method)
+		return cls._to_type(s, cls.methods[method]["type"])
+	# -------------- Deliverable Methods --------------
+	@classmethod
+	def list_methods(cls):
+		for m in cls.methods.keys():
+			print(m + ": " + cls.methods[m]["description"])
+	@classmethod
+	def calculate(cls, method, s1, s2):
+		cls._equal_length(s1, s2)
+		s1 = cls._ensure_type(method, s1)
+		s2 = cls._ensure_type(method, s2)
+		return cls.methods[method]["func"](s1, s2)
+	@staticmethod
+	def show(col, method, stats):
+		print(col + "\t" + method + "\t" + str(stats))
+	# -------------- Statistics List --------------
 	methods = {
 		"md": {
 			"type": float,
@@ -35,22 +69,3 @@ class Stats():
 			"description": "Correlation between columns"
 		}
 	}
-	@classmethod
-	def list_methods(cls):
-		for m in cls.methods.keys():
-			print(m + ": " + cls.methods[m]["description"])
-	@classmethod
-	def ensure_type(cls, method, s):
-		if method not in cls.methods:
-			raise ValueError("Unknown method: " + method)
-		return s.astype(cls.methods[method]["type"])
-	@classmethod
-	def calculate(cls, method, s1, s2):
-		if len(s1) != len(s2):
-			raise ValueError("Both series must have the same length.")
-		s1 = cls.ensure_type(method, s1)
-		s2 = cls.ensure_type(method, s2)
-		return cls.methods[method]["func"](s1, s2)
-	@staticmethod
-	def show(col, method, stats):
-		print(col + "\t" + method + "\t" + str(stats))
