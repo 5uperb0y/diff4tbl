@@ -12,10 +12,23 @@ class Stats():
 		for m in cls.methods.keys():
 			print(m + ": " + cls.methods[m]["description"])
 	@classmethod
-	def ensure_type(cls, method, s):
+	def check_method(cls, method):
 		if method not in cls.methods:
 			raise ValueError("Unknown method: " + method)
-		return s.astype(cls.methods[method]["type"])
+	def to_type(s, type):
+		try:
+			return s.astype(type)
+		except:
+			return None
+	@classmethod
+	def ensure_type(cls, method, s):
+		cls.check_method(method)
+		t = cls.methods[method]["type"]
+		converted_s = cls.to_type(s, t)
+		if converted_s is None:
+			raise ValueError("Numeric stats method on a string, a blank or a missing value?")
+		else:
+			return converted_s
 	@classmethod
 	def calculate(cls, method, s1, s2):
 		if len(s1) != len(s2):
