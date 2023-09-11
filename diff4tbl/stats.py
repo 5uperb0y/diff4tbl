@@ -1,4 +1,13 @@
 class Stats():
+	@staticmethod
+	def kappa(s1, s2):
+		N = len(s1)
+		p_o = (s1 == s2).sum() / N
+		s1_freq = s1.value_counts() / N
+		s2_freq = s2.value_counts() / N
+		p_e = (s1_freq * s2_freq).fillna(0).sum()
+		coef = (p_o - p_e) / (1 - p_e)
+		return coef
 	methods = {
 		"md": {
 			"type": float,
@@ -9,6 +18,11 @@ class Stats():
 			"type": float,
 			"func": lambda s1, s2: abs(s2 - s1).median(),
 			"description": "Median absolute difference betweeen columns"
+		},
+		"kappa": {
+			"type": str,
+			"func": kappa,
+			"description": "Cohen's kappa coefficient between columns"
 		},
 		"identity": {
 			"type": str,
