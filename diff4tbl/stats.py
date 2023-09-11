@@ -27,7 +27,7 @@ class Stats():
 		},
 		"corr": {
 			"type": float,
-			"func": lambda s1, s2: (s2 - s1).corr(),
+			"func": lambda s1, s2: s1.corr(s2),
 			"description": "Correlation between columns"
 		}
 	}
