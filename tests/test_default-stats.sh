@@ -16,7 +16,7 @@ cat << EOF > "${TMP_EXPECT}"
 id	identity	1.0
 REF	identity	0.5
 ALT	identity	1.0
-QUAL	mean	20.0
+QUAL	md	20.0
 EOF
 python -m diff4tbl --stats "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
 assert "${TMP_EXPECT}" "${TMP_ACTUAL}"
