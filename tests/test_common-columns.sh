@@ -16,5 +16,5 @@ id	REF	ALT
 a1	A{T}	G
 a2	C	G
 EOF
-python main.py -C "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
+python -m diff4tbl -C "${TMP_FILE1}" "${TMP_FILE2}" > "${TMP_ACTUAL}"
 assert "${TMP_EXPECT}" "${TMP_ACTUAL}"
