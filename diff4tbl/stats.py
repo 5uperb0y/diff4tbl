@@ -1,24 +1,14 @@
 class Stats():
 	methods = {
-		"max": {
+		"md": {
 			"type": float,
-			"func": lambda s1, s2: (s2 - s1).max(),
-			"description": "Max difference between columns"
+			"func": lambda s1, s2: abs(s2 - s1).mean(),
+			"description": "Mean absolute difference between columns"
 		},
-		"min": {
+		"mad": {
 			"type": float,
-			"func": lambda s1, s2: (s2 - s1).min(),
-			"description": "Min difference between columns"
-		},
-		"mean": {
-			"type": float,
-			"func": lambda s1, s2: (s2 - s1).mean(),
-			"description": "Mean difference between columns"
-		},
-		"median": {
-			"type": float,
-			"func": lambda s1, s2: (s2 - s1).median(),
-			"description": "Median difference betweeen columns"
+			"func": lambda s1, s2: abs(s2 - s1).median(),
+			"description": "Median absolute difference betweeen columns"
 		},
 		"identity": {
 			"type": str,
