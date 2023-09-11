@@ -37,6 +37,6 @@ class Stats():
 		s1 = cls.ensure_type(method, s1)
 		s2 = cls.ensure_type(method, s2)
 		return cls.methods[method]["func"](s1, s2)
-	@classmethod
-	def show(cls, col, method, stats):
+	@staticmethod
+	def show(col, method, stats):
 		print(col + "\t" + method + "\t" + str(stats))

@@ -19,7 +19,7 @@ def parse_arguments():
 def get_default_method(df, column):
 	try:
 		pd.to_numeric(df[column])
-		return "mean"
+		return "md"
 	except ValueError:
 		return "identity"
 def map_column_and_method(df, args_column = None):
