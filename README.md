@@ -15,11 +15,16 @@
 The utility is designed as a command-line tool, making it easily integrable with other powerful data manipulation utilities.
 
 ## Installation and Requirements
-`diff4tbl` is currently available in source code form. Ensure you have Python and the pandas library installed.
+`diff4tbli` is compatible with pip for easy installation. Below are the steps to get you started:
 ```bash
-git clone https://github.com/5uperb0y/diff4tbl.git
-cd diff4tbl/diff4tbl
-python -m diff4tbl [options]
+# Clone the repository
+$ git clone https://github.com/5uperb0y/diff4tbl.git
+# Navigate into the directory
+$ cd diff4tbl
+# Install the package using pip
+$ pip install . 		# Alternatively, you can use `python setup.py install`
+# Verify the installation
+$ diff4tbl --help		 # This should display the help message
 ```
 ## Command-Line Interface (CLI)
 Note: The list of options is rather extensive, providing complete control over the comparison task.
